@@ -1,0 +1,85 @@
+plugins {
+    id "com.github.maiflai.scalatest" version "0.10"
+}
+apply plugin: 'scala'
+apply plugin: 'application'
+apply plugin: 'distribution'
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+version = "0.1"
+group = 'in.microservice'
+
+def SLF4J_VERSION = '1.7.5'
+def SCALA_VERSION = '2.11.7'
+def SCALA_TEST_VERSION = '2.2.6'//2.2.5
+
+def AKKA_STREAM_VERSION = '2.4.2-RC3'//2.0.1
+def AKKA_HTTP_JSON_VERSION = '1.4.2'//1.5.0 earlier
+def JSON_4S_VERSION = '3.3.0'
+def APACHE_COMMONS_VERSION = '1.4'
+
+dependencies {
+    compile "org.scala-lang:scala-reflect:$SCALA_VERSION"
+    compile "org.scala-lang:scala-library:$SCALA_VERSION"
+    compile "com.typesafe.akka:akka-http-experimental_2.11:$AKKA_STREAM_VERSION"
+    compile "de.heikoseeberger:akka-http-json4s_2.11:$AKKA_HTTP_JSON_VERSION"
+    compile "org.json4s:json4s-core_2.11:$JSON_4S_VERSION"
+    compile "org.json4s:json4s-jackson_2.11:$JSON_4S_VERSION"
+    compile "org.json4s:json4s-native_2.11:$JSON_4S_VERSION"
+    compile "org.json4s:json4s-ext_2.11:$JSON_4S_VERSION"
+    // compile "io.swagger:swagger-scala-module_2.11:$SWAGGER_VERSION"
+    compile "org.slf4j:slf4j-log4j12:$SLF4J_VERSION"
+    compile "com.google.zxing:core:3.2.1"
+    compile 'com.google.zxing:javase:3.2.1'
+    compile 'javax.mail:javax.mail-api:1.5.5'
+    compile 'javax.activation:activation:1.1.1'
+    compile "org.apache.commons:commons-email:$APACHE_COMMONS_VERSION"
+    testCompile "org.scalatest:scalatest_2.11:$SCALA_TEST_VERSION"
+    testRuntime 'org.pegdown:pegdown:1.2.1'
+    testCompile "com.typesafe.akka:akka-http-testkit-experimental_2.11:$AKKA_STREAM_VERSION"
+}
+
+configurations.all {
+    exclude module: 'slf4j-log4j12'
+}
+sourceSets {
+    main {
+        output.resourcesDir = "build/classes/main"
+    }
+}
+compileScala { // This is to enable the feature warnings to appear in the compile time
+    scalaCompileOptions.additionalParameters = ["-feature"]
+}
+
+run {
+    mainClassName = "in.services.Service"
+    // applicationDefaultJvmArgs = ["-Dgreeting.language=en"]
+}
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.useAnt = false
+}
+task basicTests(type: Test) {
+    testLogging {
+        // Show that tests are run in the command-line output
+        events 'started', 'passed', 'failed'
+    }
+    suite 'in.basic.DBUtilSpec'
+}
+
+task unitTests(type: Test){
+    testLogging {
+        // Show that tests are run in the command-line output
+        events 'started', 'passed', 'failed'
+    }
+    suites 'in.unit.*Spec'
+}
+task acceptanceTests(type: Test){
+    testLogging {
+        // Show that tests are run in the command-line output
+        events 'started', 'passed', 'failed'
+    }
+    suites 'in.acceptance.*Spec'
+}
